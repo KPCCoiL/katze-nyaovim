@@ -1,0 +1,5 @@
+# Katze
+
+Preview your LaTeX math as you type
+
+See also: [LuaLaTeX package](https://github.com/KPCCoiL/katze-lualatex)
