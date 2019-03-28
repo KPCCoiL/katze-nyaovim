@@ -1,0 +1,127 @@
+*katze-nyaovim.txt* Preview LaTeX math with your favorite macros
+
+Version: 0.0.1
+Author: CoiL
+License: MIT
+
+==============================================================================
+CONTENTS					    *katze-nyaovim-contents*
+
+Introduction		|katze-nyaovim-introduction|
+Installation		|katze-nyaovim-installation|
+Usage			|katze-nyaovim-usage|
+Functions		|katze-nyaovim-functions|
+Variables		|katze-nyaovim-variables|
+
+
+==============================================================================
+INTRODUCTION					    *katze-nyaovim-introduction*
+
+*katze-nyaovim* is a NyaoVim UI plugin to preview LaTeX math as you type.
+Besides, LuaLaTeX package katze-lualatex enables this plugin to sync macros
+defined in the document.
+
+==============================================================================
+INSTALLATION					    *katze-nyaovim-installation*
+
+Install this as ordinary Vim plugin. 
+In addition, you have to add `katze-viewer` component in your `nyaovimrc.html`:
+>
+  <dom-module id="nyaovim-app">
+    <template>
+      <style>
+        .horizontal {
+          display: flex;
+          width: 100%;
+          height: 100%;
+        }
+        neovim-editor {
+          width: 100%;
+          height: 100%;
+        }
+      </style>
+  
+      <div class="horizontal">
+        <neovim-editor
+          id="nyaovim-editor"
+          argv="[[argv]]">
+        </neovim-editor>
+        <katze-viewer editor="[[editor]]"></katze-viewer>
+      </div>
+    </template>
+  </dom-module>
+<
+
+==============================================================================
+USAGE						    *katze-nyaovim-usage*
+
+First of all, open preview window with |katze#openPreview()|. Call
+|katze#sendMath()| with the cursor on LaTeX math to preview it. You can also use
+|katze#startAutoPreview()| to update the preview automatically.
+
+Use `\newkatzecommand` family in LuaLaTeX package katze-lualatex to define
+math macro to be used in the preview. You have to compile the document to sync
+the macros.
+
+==============================================================================
+FUNCTIONS					    *katze-nyaovim-functions*
+
+						    *katze#openPreview()*
+katze#openPreview([{min_width}, [{port}]])
+  Opens Katze preview and starts macro server with port {port}. {min_width} defaults to
+|g:katze_min_width|. {port} defaults to 3303 (since it looks like MEOW :) )
+
+						    *katze#closePreview()*
+katze#closePreview()
+  Closes preview and stops server.
+
+						    *katze#sendMath()*
+katze#sendMath()
+  Sends LaTeX math under cursor to preview.
+
+						    *katze#sendRange()*
+katze#sendRange({start}, {last})
+  Sends text between line {start} to line {last} as LaTeX math to preview.
+
+						    *katze#startAutoPreview()*
+katze#startAutoPreview()
+  Begins to call |katze#sendMath()| every time the buffer is modified.
+
+						    *katze#stopAutoPreview()*
+katze#startAutoPreview()
+  Stops to call |katze#sendMath()| every time the buffer is modified.
+
+						    *katze#toggleAutoPreview()*
+katze#toggleAutoPreview()
+  If automatic preview is enabled, disables it; and vice versa.
+
+==============================================================================
+VARIABLES					    *katze-nyaovim#variables*
+
+						    *g:katze_align_environment*
+g:katze_align_environment
+  environments to use aligning with `&`.
+  Default: `['align', 'align*']`
+
+g:katze_math_environment
+  environments to be detected. Exclude ones in |g:katze_align_environment|.
+  Default: `['gather', 'displaymath', 'equation', 'equation*']`
+
+g:katze_min_width
+  width to be used by Katze preview.
+  Default: `"500px"`
+
+g:katze_commands
+  This variable is not defined by default.
+  If defined to be true, Katze defines alias commands for functions:
+  *KatzeOpen*		 : |katze#openPreview()|
+    this command passes the argument to the corresponding function.
+  *KatzeClose*		 : |katze#closePreview()|
+  *KatzeSendMath*	 : |katze#sendMath()|
+  *KatzeSendRange*	 : |katze#sendRange()| 
+    this command accepts ranges as its arguments.
+  *KatzeStartAutoPreview*  : |katze#startAutoPreview()|
+  *KatzeStopAutoPreview*   : |katze#stopAutoPreview()|
+  *KatzeToggleAutoPreview* : |katze#toggleAutoPreview()|
+
+vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:

@@ -1,0 +1,132 @@
+<script src="./macro.js"></script>
+<script>
+  //workaround to load KaTeX properly(?) with old Electron
+  const katze_global_module = module;
+  module = {};
+</script>
+
+<link rel="stylesheet" href="./vendor/katex.min.css">
+<script src="./vendor/katex.min.js"></script>
+<script>
+  katex = module.exports;
+  module = katze_global_module;
+</script>
+
+<dom-module id="katze-viewer">
+  <template id="katze-template">
+    <style>
+      :host {
+        width: auto;
+        height: auto;
+      }
+      #katze-body {
+        display: none;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <link id="katze-katex-css" rel="stylesheet">
+    <div id="katze-body">
+      <div id="katze-preview"></div>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+(function () {
+  'use strict';
+
+  const net = require('net');
+
+  Polymer({
+    is: 'katze-viewer',
+
+    properties: {
+      visible: {
+        type: Boolean,
+        value: false
+      },
+      editor: Object
+    },
+
+    ready() {
+      this.body = this.$['katze-body'];
+      this.preview = this.$['katze-preview'];
+      this.definitions = {}
+
+      let katex_style = document
+        .currentScript
+        .ownerDocument
+        .querySelector('link[rel="stylesheet"]');
+      this.$['katze-katex-css'].href = katex_style.href;
+
+      this.server = net.createServer(socket => {
+        socket.on('data', data => {
+          this.definitions = katze_macros(JSON.parse(data));
+          this.redraw();
+        });
+      });
+
+      this.client = this.editor.getClient();
+      this.client.on('notification', (method, args) => {
+        switch (method) {
+          case 'katze:open':
+            this.show(args[0]);
+            this.start_server(args.length > 1 ? args[1] : 3303);
+            break;
+          case 'katze:close':
+            this.close();
+            break;
+          case 'katze:send_math':
+            this.update_preview(args[0]);
+            break;
+        }
+      });
+      this.client.subscribe('katze:open');
+      this.client.subscribe('katze:close');
+      this.client.subscribe('katze:send_math');
+    },
+
+    start_server(port) {
+      this.server.listen(port, "127.0.0.1");
+    },
+
+    update_preview(math_source) {
+      this.current_math = math_source;
+      this.redraw();
+    },
+
+    redraw() {
+      if (this.current_math === "") {
+        this.preview.innerHTML = '\n';
+      }
+      else {
+        katex.render(this.current_math, this.preview, {
+          displayMode: true,
+          throwOnError: false,
+          macros: this.definitions,
+          strict: 'ignore'
+        });
+      }
+      this.editor.screen.checkShouldResize();
+    },
+
+    show(minWidth) {
+      if (!this.visible) {
+        this.body.style.display = 'flex';
+        this.visible = true;
+        this.preview.style.width = minWidth;
+        this.editor.screen.checkShouldResize();
+      }
+    },
+
+    close() {
+      this.body.style.display = 'none';
+      this.visible = false;
+      this.server.close();
+      this.editor.screen.checkShouldResize();
+      this.editor.focus();
+    }
+  });
+})();
+</script>
