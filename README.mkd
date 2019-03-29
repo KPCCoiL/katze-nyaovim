@@ -2,4 +2,7 @@
 
 Preview your LaTeX math as you type
 
+## Demo
+![Demo](https://kpccoil.github.io/images/katze-demo.gif)
+
 See also: [LuaLaTeX package](https://github.com/KPCCoiL/katze-lualatex)
